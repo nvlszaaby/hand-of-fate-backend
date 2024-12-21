@@ -7,6 +7,13 @@ const {
 const recordMatch = async (req, res) => {
   let { user1Id, user2Id, rounds } = req.body;
 
+  // Validasi jumlah ronde untuk Bo5
+  if (rounds.length < 3 || rounds.length > 5) {
+    return res.status(400).json({
+      message: "Invalid number of rounds. Bo5 requires between 3 to 5 rounds.",
+    });
+  }
+
   try {
     let user1Wins = 0;
     let user2Wins = 0;
