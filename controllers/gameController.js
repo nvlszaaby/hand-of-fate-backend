@@ -11,14 +11,14 @@ const playAgainstComputer = async (req, res) => {
 
   if (userChoice === computerChoice) {
     result = "draw";
-    await updateUserPoints(userId, 1);
+    // await updateUserPoints(userId, 1);
   } else if (
     (userChoice === "rock" && computerChoice === "scissors") ||
     (userChoice === "scissors" && computerChoice === "paper") ||
     (userChoice === "paper" && computerChoice === "rock")
   ) {
     result = "win";
-    await updateUserPoints(userId, 5);
+    // await updateUserPoints(userId, 5);
   } else {
     result = "lose";
   }

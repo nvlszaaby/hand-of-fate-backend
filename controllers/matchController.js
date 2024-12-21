@@ -16,9 +16,9 @@ const recordMatch = async (req, res) => {
       user2Wins = 0; // Komputer tidak menang
       user1Wins = rounds.filter((round) => round.winner === "user1").length;
 
-      if (user1Wins > 1) {
+      if (user1Wins > 3) {
         winner = "user1";
-      } else if (user1Wins < 1) {
+      } else if (user1Wins < 3) {
         winner = "user2"; // Komputer menang
       } else {
         winner = "draw";
@@ -30,8 +30,8 @@ const recordMatch = async (req, res) => {
         if (rounds[i].winner === "user1") user1Wins++;
         if (rounds[i].winner === "user2") user2Wins++;
 
-        if (user1Wins === 2 || user2Wins === 2) {
-          winner = user1Wins === 2 ? "user1" : "user2";
+        if (user1Wins === 3 || user2Wins === 3) {
+          winner = user1Wins === 3 ? "user1" : "user2";
           break;
         }
       }
@@ -49,9 +49,9 @@ const recordMatch = async (req, res) => {
 
       // Update user points based on winner
       if (winner === "user1") {
-        await updateUserPoints(user1Id, 5);
+        await updateUserPoints(user1Id, 3);
       } else if (winner === "user2" && user2Id !== "computer") {
-        await updateUserPoints(user2Id, 5);
+        await updateUserPoints(user2Id, 3);
       } else if (winner === "draw") {
         await updateUserPoints(user1Id, 1);
         await updateUserPoints(user2Id, 1);
@@ -61,7 +61,7 @@ const recordMatch = async (req, res) => {
     } else {
       // Only update points without saving to leaderboard if opponent is 'computer'
       if (winner === "user1") {
-        await updateUserPoints(user1Id, 5);
+        await updateUserPoints(user1Id, 3);
       } else if (winner === "draw") {
         await updateUserPoints(user1Id, 1);
       }
