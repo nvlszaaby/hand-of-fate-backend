@@ -14,69 +14,84 @@ const recordMatch = async (req, res) => {
     });
   }
 
+  if (!user1Id || !user2Id || !Array.isArray(rounds)) {
+    return res.status(400).json({
+      message: "Invalid input data format.",
+    });
+  }
+
+  if (
+    !rounds.every(
+      (round) =>
+        round.winner === "user1" ||
+        round.winner === "user2" ||
+        round.winner === "draw"
+    )
+  ) {
+    return res.status(400).json({
+      message:
+        "Each round must have a valid winner ('user1' or 'user2' or 'draw').",
+    });
+  }
+
   try {
     let user1Wins = 0;
     let user2Wins = 0;
     let winner = null;
 
-    if (user2Id === "computer") {
-      user2Wins = 0; // Komputer tidak menang
-      user1Wins = rounds.filter((round) => round.winner === "user1").length;
+    for (let i = 0; i < rounds.length; i++) {
+      if (rounds[i].winner === "user1") user1Wins++;
+      if (rounds[i].winner === "user2") user2Wins++;
 
-      if (user1Wins > 3) {
-        winner = "user1";
-      } else if (user1Wins < 3) {
-        winner = "user2"; // Komputer menang
-      } else {
-        winner = "draw";
-      }
-
-      user2Id = null; // Set to null or omit this value to prevent issues with the leaderboard
-    } else {
-      for (let i = 0; i < rounds.length; i++) {
-        if (rounds[i].winner === "user1") user1Wins++;
-        if (rounds[i].winner === "user2") user2Wins++;
-
-        if (user1Wins === 3 || user2Wins === 3) {
-          winner = user1Wins === 3 ? "user1" : "user2";
-          break;
-        }
-      }
-
-      if (!winner) {
-        if (user1Wins > user2Wins) winner = "user1";
-        else if (user2Wins > user1Wins) winner = "user2";
-        else winner = "draw";
+      // Periksa jika ada pemenang (mencapai 3 kemenangan)
+      if (user1Wins === 3 || user2Wins === 3) {
+        winner = user1Wins === 3 ? "user1" : "user2";
+        break;
       }
     }
 
-    // If the opponent is the computer, do not save the match to the leaderboard
-    if (user2Id !== null) {
-      const match = await saveMatch(user1Id, user2Id, winner);
+    // Jika tidak ada pemenang meskipun semua ronde dimainkan
+    if (!winner) {
+      winner =
+        user1Wins > user2Wins
+          ? "user1"
+          : user1Wins < user2Wins
+          ? "user2"
+          : "draw";
+    }
 
-      // Update user points based on winner
+    // Simpan pertandingan ke database
+    const match = await saveMatch(
+      user1Id,
+      user2Id === "computer" ? null : user2Id, // Simpan null jika lawan adalah komputer
+      winner
+    );
+
+    // Update leaderboard jika lawan bukan komputer
+    if (user2Id !== "computer") {
       if (winner === "user1") {
         await updateUserPoints(user1Id, 3);
-      } else if (winner === "user2" && user2Id !== "computer") {
+      } else if (winner === "user2") {
         await updateUserPoints(user2Id, 3);
       } else if (winner === "draw") {
         await updateUserPoints(user1Id, 1);
         await updateUserPoints(user2Id, 1);
       }
-
-      res.status(201).json({ message: "Match recorded successfully", match });
     } else {
-      // Only update points without saving to leaderboard if opponent is 'computer'
+      // Update poin hanya untuk user1 melawan komputer
       if (winner === "user1") {
         await updateUserPoints(user1Id, 3);
       } else if (winner === "draw") {
         await updateUserPoints(user1Id, 1);
       }
-
-      res
-        .status(201)
-        .json({ message: "Match recorded successfully against computer" });
     }
+
+    res.status(201).json({
+      message: `Match recorded successfully${
+        user2Id === "computer" ? " against computer" : ""
+      }`,
+      match,
+    });
   } catch (error) {
     console.error("Error details:", error); // Log error details
     res.status(500).json({ message: "Error recording match", error });
