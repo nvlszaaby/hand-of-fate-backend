@@ -23,11 +23,11 @@ const updateUserPoints = async (userId, points) => {
 const getLeaderboard = async () => {
   const result = await pool.query(
     `
-    SELECT u.full_name, l.points 
+    SELECT u.username, l.points 
     FROM leaderboard l
     JOIN users u ON l.user_id = u.id
-    WHERE u.full_name != 'Computer'
-    ORDER BY l.points DESC, u.full_name ASC
+    WHERE u.username != 'Computer'
+    ORDER BY l.points DESC, u.username ASC
     `
   );
   return result.rows;

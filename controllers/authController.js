@@ -5,7 +5,7 @@ const Joi = require("joi");
 
 // Validasi Register
 const registerSchema = Joi.object({
-  fullName: Joi.string().min(3).max(50).required(),
+  username: Joi.string().min(3).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
 });
@@ -17,14 +17,14 @@ const loginSchema = Joi.object({
 });
 
 const register = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  const { error } = registerSchema.validate({ fullName, email, password });
+  const { error } = registerSchema.validate({ username, email, password });
   if (error) return res.status(400).json({ message: error.details[0].message });
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await createUser(fullName, email, hashedPassword);
+    const user = await createUser(username, email, hashedPassword);
     res.status(201).json({ message: "User registered successfully", user });
   } catch (error) {
     res.status(500).json({ message: "Error registering user", error });
