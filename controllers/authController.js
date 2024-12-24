@@ -1,6 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { createUser, findUserByEmail } = require("../models/userModel");
+const {
+  createUser,
+  findUserByEmail,
+  findUserByUsername,
+} = require("../models/userModel");
 const Joi = require("joi");
 
 // Validasi Register
@@ -23,10 +27,24 @@ const register = async (req, res) => {
   if (error) return res.status(400).json({ message: error.details[0].message });
 
   try {
+    // Periksa apakah username sudah terdaftar
+    const existingUsername = await findUserByUsername(username);
+    if (existingUsername) {
+      return res.status(409).json({ message: "Username already exists" });
+    }
+
+    // Periksa apakah email sudah terdaftar
+    const existingEmail = await findUserByEmail(email);
+    if (existingEmail) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
+    // Hash password dan buat pengguna baru
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await createUser(username, email, hashedPassword);
     res.status(201).json({ message: "User registered successfully", user });
   } catch (error) {
+    console.error("Error during registration:", error);
     res.status(500).json({ message: "Error registering user", error });
   }
 };
