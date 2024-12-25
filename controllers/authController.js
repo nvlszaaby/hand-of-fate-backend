@@ -20,12 +20,12 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   const { error } = registerSchema.validate({ username, email, password });
   if (error) return res.status(400).json({ message: error.details[0].message });
-
+  console.log()
   try {
     // Periksa apakah username sudah terdaftar
     const existingUsername = await findUserByUsername(username);
@@ -46,6 +46,7 @@ const register = async (req, res) => {
   } catch (error) {
     console.error("Error during registration:", error);
     res.status(500).json({ message: "Error registering user", error });
+    next(error)
   }
 };
 
